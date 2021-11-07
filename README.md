@@ -2,9 +2,9 @@
 
 ## 技术栈
 
-- 语言 go
-- 框架 gin
-- 数据库：
+- 语言： go
+- 框架： gin
+- 数据库： mysql
 - 前端页面：layui
 
 ## API
@@ -22,7 +22,7 @@
 
 ### 注册
 
-POST /register 
+POST /register
 
 ### 登出/注销
 
