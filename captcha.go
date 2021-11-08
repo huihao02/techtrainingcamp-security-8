@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 // }
 
 const (
+	DefaultLen = 6
 	CollectNum = 100
 	Expiration = 10 * time.Minute
 )
@@ -49,15 +51,17 @@ func CaptchaImage(c *gin.Context, length int) {
 func CaptchaPhone(c *gin.Context) {
 	// 如果手机号不存在返回错误
 	captchaId := captcha.New()
-	digits := captchaStore.Get(captchaId, false)
+	digits := captcha.RandomDigits(DefaultLen)
+	captchaStore.Set(captchaId, digits)
 	session := sessions.Default(c)
 	session.Set("captcha", captchaId)
 	_ = session.Save()
+	fmt.Println(digits)
 	c.JSON(http.StatusOK, gin.H{
 		"Code":    0,
 		"Message": "success",
 		"Data": gin.H{
-			"VerifyCode":   digits,
+			"VerifyCode":   bytes.Runes(digits),
 			"ExpireTime":   Expiration,
 			"DecisionType": 0, // 风控不成功则为1
 		},
