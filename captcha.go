@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -47,12 +46,22 @@ func CaptchaImage(c *gin.Context, length int) {
 	_ = Serve(c.Writer, c.Request, captchaId, ".png", "zh", false, w, h)
 }
 
-func CaptchaPhone(c *gin.Context, length int) string {
-	captchaId := captcha.NewLen(length)
-	fmt.Println(captchaStore.Get(captchaId, false))
+func CaptchaPhone(c *gin.Context) {
+	// 如果手机号不存在返回错误
+	captchaId := captcha.New()
+	digits := captchaStore.Get(captchaId, false)
 	session := sessions.Default(c)
 	session.Set("captcha", captchaId)
 	_ = session.Save()
+	c.JSON(http.StatusOK, gin.H{
+		"Code":    0,
+		"Message": "success",
+		"Data": gin.H{
+			"VerifyCode":   digits,
+			"ExpireTime":   Expiration,
+			"DecisionType": 0, // 风控不成功则为1
+		},
+	})
 }
 
 func CaptchaVerify(c *gin.Context, code string) bool {

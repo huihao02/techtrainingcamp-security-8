@@ -20,8 +20,8 @@ func main() {
 		CaptchaImage(c, 4)
 	})
 	// 获取手机验证码
-	r.GET("/captcha/phone", func(c *gin.Context) {
-		CaptchaPhone(c, 4)
+	r.POST("/captcha/phone", func(c *gin.Context) {
+		CaptchaPhone(c)
 	})
 	// 验证验证码 Code 0 成功，1 失败
 	r.GET("/captcha/verify/:value", func(c *gin.Context) {
