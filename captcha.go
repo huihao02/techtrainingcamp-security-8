@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -26,14 +27,32 @@ import (
 // 	return store
 // }
 
-func Captcha(c *gin.Context, length int) {
+const (
+	CollectNum = 100
+	Expiration = 10 * time.Minute
+)
+
+var captchaStore = captcha.NewMemoryStore(CollectNum, Expiration)
+
+func CaptchaConfig() {
+	captcha.SetCustomStore(captchaStore)
+}
+
+func CaptchaImage(c *gin.Context, length int) {
 	w, h := 107, 36 // 图片大小
 	captchaId := captcha.NewLen(length)
 	session := sessions.Default(c)
 	session.Set("captcha", captchaId)
 	_ = session.Save()
 	_ = Serve(c.Writer, c.Request, captchaId, ".png", "zh", false, w, h)
-	
+}
+
+func CaptchaPhone(c *gin.Context, length int) string {
+	captchaId := captcha.NewLen(length)
+	fmt.Println(captchaStore.Get(captchaId, false))
+	session := sessions.Default(c)
+	session.Set("captcha", captchaId)
+	_ = session.Save()
 }
 
 func CaptchaVerify(c *gin.Context, code string) bool {
