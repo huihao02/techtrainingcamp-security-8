@@ -1,6 +1,7 @@
 package main
 
 import (
+	"example/app"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -14,19 +15,19 @@ func main() {
 	r.Use(sessions.Sessions("mysession", store))
 
 	// 设置验证码的自定义 store
-	CaptchaConfig()
+	app.CaptchaConfig()
 	// 获取图片验证码
 	r.GET("/captcha/image", func(c *gin.Context) {
-		CaptchaImage(c, 4)
+		app.CaptchaImage(c, 4)
 	})
 	// 获取手机验证码
 	r.POST("/captcha/phone", func(c *gin.Context) {
-		CaptchaPhone(c)
+		app.CaptchaPhone(c)
 	})
 	// 验证验证码 Code 0 成功，1 失败
 	r.GET("/captcha/verify/:value", func(c *gin.Context) {
 		value := c.Param("value")
-		if CaptchaVerify(c, value) {
+		if app.CaptchaVerify(c, value) {
 			c.JSON(http.StatusOK, gin.H{
 				"Code":    0,
 				"Message": "success",
@@ -39,4 +40,5 @@ func main() {
 		}
 	})
 	r.Run(":9999")
+
 }
