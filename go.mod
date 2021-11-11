@@ -7,6 +7,9 @@ require github.com/gin-gonic/gin v1.7.4
 require (
 	github.com/dchest/captcha v0.0.0-20200903113550-03f5f0333e1f
 	github.com/gin-contrib/sessions v0.0.4
+	github.com/go-sql-driver/mysql v1.6.0
+	github.com/jmoiron/sqlx v1.3.4
+	github.com/satori/go.uuid v1.2.0
 )
 
 require (
