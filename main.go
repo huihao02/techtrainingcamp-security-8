@@ -22,6 +22,10 @@ func main() {
 	//某IP地址因连续登录错误次数超过规定值而被禁止账号密码登录的起始时间
 	var bannedTime map[string]time.Time
 	bannedTime = make(map[string]time.Time)
+	//某手机号上次注册时间
+	var lastTime = make(map[string]time.Time)
+	//某手机号总共注册次数
+	var registerTimes = make(map[string]int)
 	//数据库连接初始化
 	utils.Init()
 	//获取数据库连接
@@ -118,7 +122,81 @@ func main() {
 			},
 		})
 	})
+	//注册
+	r.POST("/register", func(c *gin.Context) {
+		userName := c.PostForm("UserName")
+		phoneNumber := c.PostForm("PhoneNumber")
+		password := c.PostForm("Password")
+		//ip不在表内，故并不使用
+		//ip := c.PostForm("IP")
+		deviceId := c.PostForm("DeviceID")
 
+		//判断该手机号是否已被注册
+		if app.VerifyPhoneNum(phoneNumber, db) {
+			c.JSON(http.StatusOK, gin.H{
+				"Code" : 1,
+				"Message" : "该手机号已被注册",
+			})
+			return
+		}
+		var code int
+		var message string
+		var sessionID = utils.GetNewSessionId()
+		var decisionType int
+
+		if _, exist := lastTime[phoneNumber]; exist {
+			last := lastTime[phoneNumber]
+			//若禁止注册时间已过
+			if time.Now().After(last.Add(utils.PHONENUM_REGISTER_INTERVAL)) {
+				delete(bannedTime, phoneNumber)
+			}
+		}
+		//执行插入操作，result为结果的状态： 0:执行成功 ， 1：语句执行失败， 2：注册次数过多
+		var result int
+		_, exist := lastTime[phoneNumber];
+		if !exist{
+			result = app.InsertIntoUser(userName, phoneNumber, password, deviceId, db, registerTimes)
+		}
+		if _, exist := lastTime[phoneNumber]; exist {
+			//距离上次注册小于指定时间
+			code = 1
+			message = "注册过于频繁， 请等待一段时间后再次注册"
+			decisionType = 2
+		} else if result == 0 && registerTimes[phoneNumber] >= 5 {
+			//注册次数达到一定数目，进行滑块验证
+			code = 0
+			message = "注册成功"
+			decisionType = 1
+			lastTime[phoneNumber] = time.Now()
+		} else if result == 0 {
+			//正常注册成功
+			code = 0
+			message = "注册成功"
+			decisionType = 1
+			lastTime[phoneNumber] = time.Now()
+		}else if result == 1 {
+			//注册执行插入语句出错
+			code = 1
+			message = "注册失败"
+			decisionType = 0
+		} else if result == 2 {
+			//注册总次数达到限制
+			code = 1
+			message = "注册失败，注册总次数达到限制"
+			decisionType = 3
+		}
+
+
+		c.JSON(http.StatusOK, gin.H{
+			"Code" : code,
+			"Message" : message,
+			"Data": gin.H{
+				"SessionID":    sessionID,
+				"ExpireTime":   utils.EXPIRE_TIME,
+				"DecisionType": decisionType,
+			},
+		})
+	})
 	r.Run(":9999")
 
 }
