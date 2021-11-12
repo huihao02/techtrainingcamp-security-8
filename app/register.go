@@ -6,6 +6,7 @@ import (
 )
 
 func VerifyPhoneNum(phone_num string, db *sqlx.DB)(status bool){
+	
 	//判断该手机号是否已经被注册
 	var user []User
 	_ = db.Select(&user, "SELECT user_name,phone_number,password,mostly_used_device_id from user where phone_number=?", phone_num)
