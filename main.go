@@ -42,7 +42,7 @@ func main() {
 		app.CaptchaPhone(c)
 	})
 	// 验证验证码 Code 0 成功，1 失败
-	r.GET("/captcha/verify/:value", func(c *gin.Context) {
+	r.POST("/captcha/verify/:value", func(c *gin.Context) {
 		value := c.Param("value")
 		if app.CaptchaVerify(c, value) {
 			c.JSON(http.StatusOK, gin.H{
@@ -56,8 +56,22 @@ func main() {
 			})
 		}
 	})
+	r.POST("/captcha-phone/verify/:value", func(c *gin.Context) {
+		value := c.Param("value")
+		if app.CaptchaPhoneVerify(c, value) {
+			c.JSON(http.StatusOK, gin.H{
+				"Code":    0,
+				"Message": "success",
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"Code":    1,
+				"Message": "failed",
+			})
+		}
+	})
 	r.POST("/login", func(c *gin.Context) {
-		user_name := c.PostForm("UserName")
+		userName := c.PostForm("UserName")
 		password := c.PostForm("Password")
 		IP := c.PostForm("IP")
 		DeviceID := c.PostForm("DeviceID")
@@ -77,7 +91,7 @@ func main() {
 		}
 
 		//验证用户信息，并返回登录状态
-		loginStatus := app.VerifyUser(user_name, password, IP, DeviceID, db, failTimes, bannedTime)
+		loginStatus := app.VerifyUser(userName, password, IP, DeviceID, db, failTimes, bannedTime)
 		var code int
 		var message string
 		var sessionID = utils.GetNewSessionId()

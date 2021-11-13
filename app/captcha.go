@@ -54,7 +54,7 @@ func CaptchaPhone(c *gin.Context) {
 	digits := captcha.RandomDigits(DefaultLen)
 	captchaStore.Set(captchaId, digits)
 	session := sessions.Default(c)
-	session.Set("captcha", captchaId)
+	session.Set("captcha-phone", captchaId)
 	_ = session.Save()
 	fmt.Println(digits)
 	c.JSON(http.StatusOK, gin.H{
@@ -74,6 +74,20 @@ func CaptchaVerify(c *gin.Context, code string) bool {
 		session.Delete("captcha")
 		_ = session.Save()
 		if captcha.VerifyString(captchaId.(string), code) {
+			return true
+		} else {
+			return false
+		}
+	}
+	return false
+}
+
+func CaptchaPhoneVerify(c *gin.Context, code string) bool {
+	session := sessions.Default(c)
+	if captchaId := session.Get("captcha-phone"); captchaId != nil {
+		if captcha.VerifyString(captchaId.(string), code) {
+			session.Delete("captcha-phone")
+			_ = session.Save()
 			return true
 		} else {
 			return false

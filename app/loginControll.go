@@ -14,9 +14,9 @@ type User struct {
 }
 
 //第一个返回值判断登录是否成功，0代表登录成功，1代表用户名出错,2代表密码出错，3代表未在常用设备上登录,
-func VerifyUser(user_name string, password string, IP string, deviceID string, db *sqlx.DB, failTImes map[string]int, bannedTime map[string]time.Time) int {
+func VerifyUser(userName string, password string, IP string, deviceID string, db *sqlx.DB, failTImes map[string]int, bannedTime map[string]time.Time) int {
 	var user []User
-	db.Select(&user, "select user_name,phone_number,password,mostly_used_device_id from user where user_name=?", user_name)
+	_ = db.Select(&user, "select user_name,phone_number,password,mostly_used_device_id from user where user_name=?", userName)
 	//用户名出错
 	if len(user) == 0 {
 		remainingAvailableTime(IP, failTImes, bannedTime)
