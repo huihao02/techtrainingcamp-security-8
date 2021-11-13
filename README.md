@@ -15,7 +15,7 @@
 - GET /captcha/phone 获取手机验证码
 - POST /captcha/verify/:value 验证验证码
 - POST /captcha/verify-phone/:value 验证手机验证码
-- 
+
 ```shell
 # 获取验证码 响应头的`Set-Cookie`的字段 验证码返回值 作`curl`验证用
 $curl http://127.0.0.1:9999/captcha/phone -X POST -i
